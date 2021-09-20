@@ -14,6 +14,7 @@ from util.norm import SpecificNorm
 from test_wholeimage_swapmulti import _totensor
 from insightface_func.face_detect_crop_multi import Face_detect_crop as Face_detect_crop_multi
 from insightface_func.face_detect_crop_single import Face_detect_crop as Face_detect_crop_single
+from insightface_func.face_detect_crop_specific import Face_detect_crop as Face_detect_crop_specific
 
 
 class Predictor(cog.Predictor):
@@ -23,18 +24,24 @@ class Predictor(cog.Predictor):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
+    def get_app(self, faceindex=0, mode='all'):
+        match mode:
+            case 'all':
+                return Face_detect_crop_multi(name='antelope', root='./insightface_func/models')
+            case 'single':
+                return Face_detect_crop_single(name='antelope', root='./insightface_func/models')
+            case 'specific':
+                return Face_detect_crop_specific(name='antelope', root='./insightface_func/models', faceindex=faceindex)
+
     @cog.input("source", type=Path, help="source image")
     @cog.input("target", type=Path, help="target image")
-    @cog.input("mode", type=str, options=['single', 'all'], default='all',
+    @cog.input("faceindex", type=int, help="target face index, can only be used with mode=specific", min=0, max=9, default=0)
+    @cog.input("detection_threshold", type=float, help="set the confidence threshold for face detections", min=0.2, max=0.9, default=0.6)
+    @cog.input("mode", type=str, options=['single', 'specific', 'all'], default='all',
                help="swap a single face (the one with highest confidence by face detection) or all faces in the target image")
-    def predict(self, source, target, mode='all'):
-
-        app = Face_detect_crop_multi(name='antelope', root='./insightface_func/models')
-
-        if mode == 'single':
-            app = Face_detect_crop_single(name='antelope', root='./insightface_func/models')
-
-        app.prepare(ctx_id=0, det_thresh=0.6, det_size=(640, 640))
+    def predict(self, source, target, faceindex=0, detection_threshold=0.6, mode='all'):
+        app = self.get_app(faceindex, mode)
+        app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
 
         options = TestOptions()
         options.initialize()
