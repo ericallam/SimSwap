@@ -24,13 +24,16 @@ class Predictor(cog.Predictor):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-    def get_app(self, faceindex=0, mode='all'):
+    def get_apps(self, faceindex=0, mode='all'):
+        source_app = Face_detect_crop_single(name='antelope', root='./insightface_func/models')
+        target_app = Face_detect_crop_multi(name='antelope', root='./insightface_func/models') 
+
         if mode == 'single':
-            return Face_detect_crop_single(name='antelope', root='./insightface_func/models')
+            target_app = Face_detect_crop_single(name='antelope', root='./insightface_func/models')
         elif mode == 'specific':
-            return Face_detect_crop_specific(name='antelope', root='./insightface_func/models', faceindex=faceindex)
-        else:
-            return Face_detect_crop_multi(name='antelope', root='./insightface_func/models') 
+            target_app = Face_detect_crop_specific(name='antelope', root='./insightface_func/models', faceindex=faceindex)
+
+        return source_app, target_app
 
     @cog.input("source", type=Path, help="source image")
     @cog.input("target", type=Path, help="target image")
@@ -39,8 +42,10 @@ class Predictor(cog.Predictor):
     @cog.input("mode", type=str, options=['single', 'specific', 'all'], default='all',
                help="swap a single face (the one with highest confidence by face detection) or all faces in the target image")
     def predict(self, source, target, faceindex=0, detection_threshold=0.6, mode='all'):
-        app = self.get_app(faceindex, mode)
-        app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
+        source_app, target_app = self.get_apps(faceindex, mode)
+
+        source_app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
+        target_app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
 
         options = TestOptions()
         options.initialize()
@@ -68,7 +73,7 @@ class Predictor(cog.Predictor):
         with torch.no_grad():
             pic_a = opt.pic_a_path
             img_a_whole = cv2.imread(pic_a)
-            img_a_align_crop, _ = app.get(img_a_whole, crop_size)
+            img_a_align_crop, _ = source_app.get(img_a_whole, crop_size)
             img_a_align_crop_pil = Image.fromarray(cv2.cvtColor(img_a_align_crop[0], cv2.COLOR_BGR2RGB))
             img_a = self.transformer_Arcface(img_a_align_crop_pil)
             img_id = img_a.view(-1, img_a.shape[0], img_a.shape[1], img_a.shape[2])
@@ -85,7 +90,7 @@ class Predictor(cog.Predictor):
 
             pic_b = opt.pic_b_path
             img_b_whole = cv2.imread(pic_b)
-            img_b_align_crop_list, b_mat_list = app.get(img_b_whole, crop_size)
+            img_b_align_crop_list, b_mat_list = target_app.get(img_b_whole, crop_size)
 
             swap_result_list = []
             b_align_crop_tenor_list = []
