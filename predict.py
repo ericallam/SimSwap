@@ -25,13 +25,12 @@ class Predictor(cog.Predictor):
         ])
 
     def get_app(self, faceindex=0, mode='all'):
-        match mode:
-            case 'all':
-                return Face_detect_crop_multi(name='antelope', root='./insightface_func/models')
-            case 'single':
-                return Face_detect_crop_single(name='antelope', root='./insightface_func/models')
-            case 'specific':
-                return Face_detect_crop_specific(name='antelope', root='./insightface_func/models', faceindex=faceindex)
+        if mode == 'single':
+            return Face_detect_crop_single(name='antelope', root='./insightface_func/models')
+        elif mode == 'specific':
+            return Face_detect_crop_specific(name='antelope', root='./insightface_func/models', faceindex=faceindex)
+        else:
+            return Face_detect_crop_multi(name='antelope', root='./insightface_func/models') 
 
     @cog.input("source", type=Path, help="source image")
     @cog.input("target", type=Path, help="target image")
