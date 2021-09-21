@@ -48,7 +48,11 @@ class Predictor(cog.Predictor):
         target_app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
 
         if mode == 'detect':
-            return target_app.draw_faces(cv2.imread(str(target)))
+            output_image = target_app.draw_faces(cv2.imread(str(target)))
+            output_path = Path(tempfile.mkdtemp()) / "output.png"
+            cv2.imwrite(output_path, output_image)
+            
+            return output_image
 
         options = TestOptions()
         options.initialize()
