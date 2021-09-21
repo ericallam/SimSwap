@@ -62,7 +62,7 @@ class Predictor(cog.Predictor):
                 result.append({
                     'index': idx,
                     'bounding_box': face.bbox,
-                    'kps': face.kps,
+                    'keypoints': face.kps,
                     'confidence': face.det_score
                 })
             
