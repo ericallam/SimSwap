@@ -39,7 +39,7 @@ class Predictor(cog.Predictor):
     @cog.input("target", type=Path, help="target image")
     @cog.input("faceindex", type=int, help="target face index, can only be used with mode=specific", min=0, max=9, default=0)
     @cog.input("detection_threshold", type=float, help="set the confidence threshold for face detections", min=0.2, max=0.9, default=0.6)
-    @cog.input("mode", type=str, options=['single', 'specific', 'all', 'detect'], default='all',
+    @cog.input("mode", type=str, options=['single', 'specific', 'all', 'draw', 'detect'], default='all',
                help="swap a single face (the one with highest confidence by face detection) or all faces in the target image")
     def predict(self, source, target, faceindex=0, detection_threshold=0.6, mode='all'):
         source_app, target_app = self.get_apps(faceindex, mode)
@@ -47,12 +47,27 @@ class Predictor(cog.Predictor):
         source_app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
         target_app.prepare(ctx_id=0, det_thresh=detection_threshold, det_size=(640, 640))
 
-        if mode == 'detect':
+        if mode == 'draw':
             output_image = target_app.draw_faces(cv2.imread(str(target)))
             output_path = Path(tempfile.mkdtemp()) / "output.png"
             cv2.imwrite(str(output_path), output_image)
             
             return output_path
+        elif mode == 'detect':
+            faces = target_app.detect_faces(cv2.imread(str(target)))
+
+            result = []
+
+            for face in faces:
+                result.append({
+                    'index': face.index,
+                    'bounding_box': face.bbox,
+                    'kps': face.kps,
+                    'confidence': face.det_score
+                })
+            
+            return result
+
 
         options = TestOptions()
         options.initialize()
