@@ -50,7 +50,7 @@ class Predictor(cog.Predictor):
         if mode == 'detect':
             output_image = target_app.draw_faces(cv2.imread(str(target)))
             output_path = Path(tempfile.mkdtemp()) / "output.png"
-            cv2.imwrite(output_path, output_image)
+            cv2.imwrite(str(output_path), output_image)
             
             return output_image
 
