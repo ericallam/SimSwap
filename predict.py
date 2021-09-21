@@ -52,7 +52,7 @@ class Predictor(cog.Predictor):
             output_path = Path(tempfile.mkdtemp()) / "output.png"
             cv2.imwrite(str(output_path), output_image)
             
-            return output_image
+            return output_path
 
         options = TestOptions()
         options.initialize()
