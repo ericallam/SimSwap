@@ -109,7 +109,7 @@ class Face_detect_crop:
             if kpss is not None:
                 kps = kpss[i]
 
-            ret.append(Face(bbox=bbox, kps=kps, det_score=det_score, index=i))
+            ret.append(Face(bbox=bbox, kps=kps, det_score=det_score))
 
         return ret
 

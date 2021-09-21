@@ -58,9 +58,9 @@ class Predictor(cog.Predictor):
 
             result = []
 
-            for face in faces:
+            for idx, face in enumerate(faces):
                 result.append({
-                    'index': face.index,
+                    'index': idx,
                     'bounding_box': face.bbox,
                     'kps': face.kps,
                     'confidence': face.det_score
